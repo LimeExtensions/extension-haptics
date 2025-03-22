@@ -10,10 +10,12 @@
 		"ios",
 		"java",
 		"objcpp",
-		"haptics",
-		"feedback"
+		"haptic-feedback"
 	],
 	"releasenote": "Initial release.",
+	"contributors": [
+		"MAJigsaw77"
+	],
 	"version": "1.0.0",
 	"dependencies": {
 		"lime": ""
