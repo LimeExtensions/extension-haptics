@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<meta title="Extension-Haptics Test" package="org.openfl.lime.samples.helloworld" version="1.0.0"
+		company="OpenFL" />
+
+	<app main="Main" path="export" file="App" />
+
+	<architecture exclude="armv7" if="android" />
+
+	<source path="source" />
+
+	<haxelib name="lime" />
+	<haxelib name="extension-haptics" />
+
+	<haxeflag name="-dce" value="full" />
+
+	<config>
+		<android target-sdk-version="31" />
+	</config>
+</project>

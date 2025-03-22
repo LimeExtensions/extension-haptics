@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+	<pragma once="true" />
+
+	<files id="haxe">
+		<compilerflag value="-I${haxelib:extension-haptics}/project/haptic-ios/include" />
+	</files>
+
+	<files id="__main__">
+		<compilerflag value="-I${haxelib:extension-haptics}/project/haptic-ios/include" />
+	</files>
+
+	<files id="haptic">
+		<compilerflag value="-I${haxelib:extension-haptics}/project/haptic-ios/include" />
+
+		<file name="${haxelib:extension-haptics}/project/haptic-ios/src/haptic.mm" />
+	</files>
+
+	<target id="haxe">
+		<vflag name="-framework" value="CoreHaptics" />
+	
+		<files id="haptic" />
+	</target>
+</xml>
