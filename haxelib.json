@@ -12,11 +12,11 @@
 		"objcpp",
 		"haptic-feedback"
 	],
-	"releasenote": "Initial release.",
+	"releasenote": "Some android adjustments.",
 	"contributors": [
 		"MAJigsaw77"
 	],
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"dependencies": {
 		"lime": ""
 	}
