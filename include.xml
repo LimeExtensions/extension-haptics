@@ -4,7 +4,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://lime.openfl.org/project/1.0.4 http://lime.openfl.org/xsd/project-1.0.4.xsd">
 
-	<dependency name="haptic" path="project/haptic-android" if="android" />
+	<dependency name="extension-haptics" path="project/haptic-android" if="android" />
 
 	<dependency name="CoreHaptics.framework" if="ios" />
 </extension>
