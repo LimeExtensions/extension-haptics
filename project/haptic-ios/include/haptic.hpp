@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 void hapticInitialize(void);
 void hapticDispose(void);
 void hapticVibrateOneShot(double duration, float intensity, float sharpness);
