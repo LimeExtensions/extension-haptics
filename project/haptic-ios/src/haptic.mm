@@ -13,7 +13,7 @@
 - (void)dispose;
 - (void)vibrateOneShot:(NSTimeInterval)duration intensity:(float)intensity sharpness:(float)sharpness;
 - (void)vibratePattern:(NSArray<NSNumber *> *)durations intensities:(NSArray<NSNumber *> *)intensities sharpnesses:(NSArray<NSNumber *> *)sharpnesses;
-- (void)vibratePatternFromFile:(NSString *)filePath;
+- (void)vibratePatternFromData:(NSData *)fileData;
 
 @end
 
@@ -179,9 +179,9 @@
 	}
 }
 
-- (void)vibratePatternFromFile:(NSString *)filePath
+- (void)vibratePatternFromData:(NSData *)fileData
 {
-	if (@available(iOS 16.0 , *))
+	if (@available(iOS 13.0 , *))
 	{
 		if (!self.hapticEngine)
 		{
@@ -191,28 +191,8 @@
 
 		NSError *error = nil;
 
-		CHHapticPattern *pattern = [[CHHapticPattern alloc] initWithContentsOfURL:[NSURL fileURLWithPath:filePath] error:&error];
-
-		if (error)
-		{
-			NSLog(@"Failed to load haptic pattern from file: %@", error.localizedDescription);
-			return;
-		}
-
-		id<CHHapticPatternPlayer> player = [self.hapticEngine createPlayerWithPattern:pattern error:&error];
-
-		if (error)
-		{
-			NSLog(@"Failed to create haptic player from pattern: %@", error.localizedDescription);
-			return;
-		}
-
-		[player startAtTime:0 error:&error];
-
-		if (error)
-		{
-			NSLog(@"Failed to start haptic player: %@", error.localizedDescription);
-		}
+		if (![self.hapticEngine playPatternFromData:fileData error:&error])
+			NSLog(@"Failed to play haptic pattern: %@", error.localizedDescription);
 	}
 }
 
@@ -249,7 +229,7 @@ void hapticVibratePattern(const double *durations, const float *intensities, con
 	[[HapticManager sharedInstance] vibratePattern:durationArray intensities:intensityArray sharpnesses:sharpnessArray];
 }
 
-void hapticVibratePatternFromFile(const char *path)
+void hapticVibratePatternFromData(const void *bytes, size_t len)
 {
-	[[HapticManager sharedInstance] vibratePatternFromFile:[NSString stringWithUTF8String:path]];
+	[[HapticManager sharedInstance] vibratePatternFromData:[NSData dataWithBytes:bytes length:len]];
 }

@@ -1,6 +1,8 @@
 package extension.haptics.ios;
 
 #if ios
+import haxe.io.Bytes;
+
 /**
  * This class provides haptic feedback functionality for `iOS` devices using the `CoreHaptics` framework.
  * 
@@ -56,14 +58,15 @@ class HapticIOS
 		hapticVibratePattern(cpp.Pointer.ofArray(timings).constRaw, cpp.Pointer.ofArray(amplitudes).constRaw, cpp.Pointer.ofArray(sharpnesses).constRaw,
 			timings.length);
 	}
+
 	/**
-	 * Triggers a pattern vibration using a pattern file (.ahap).
-	 *
-	 * @param path The file path to the haptic pattern file.
+	 * Triggers a haptic vibration pattern using the provided pattern data.
+	 * 
+	 * @param data The AHAP pattern data as a `Bytes` object.
 	 */
-	public static function vibratePatternFromFile(path:String):Void
+	public static function vibratePatternFromData(data:Bytes):Void
 	{
-		hapticVibratePatternFromFile(path);
+		hapticVibratePatternFromData(cast cpp.Pointer.ofArray(data).constRaw, data.length);
 	}
 
 	/**
@@ -103,9 +106,10 @@ class HapticIOS
 	/**
 	 * Native function to triggers a pattern vibration using a pattern file (.ahap).
 	 *
-	 * @param path The file path to the haptic pattern file.
+	 * @param bytes The buffer containing data for the new object.
+	 * @param length The number of bytes to copy from bytes.
 	 */
-	@:native('hapticVibratePatternFromFile')
-	extern public static function hapticVibratePatternFromFile(path:cpp.ConstCharStar):Void;
+	@:native('hapticVibratePatternFromData')
+	extern public static function hapticVibratePatternFromData(bytes:cpp.RawConstPointer<cpp.Void>, len:cpp.SizeT):Void;
 }
 #end
