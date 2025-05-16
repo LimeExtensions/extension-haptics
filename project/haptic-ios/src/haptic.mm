@@ -180,7 +180,7 @@
 
 - (void)vibratePatternFromFile:(NSString *)filePath
 {
-	if (@available(iOS 13.0, *))
+	if (@available(iOS 16.0 , *))
 	{
 		if (!self.hapticEngine)
 		{
@@ -250,5 +250,5 @@ void hapticVibratePattern(const double *durations, const float *intensities, con
 
 void hapticVibratePatternFromFile(const char *path)
 {
-	[[HapticManager sharedInstance] playPatternFromFile:[NSString stringWithUTF8String:path]];
+	[[HapticManager sharedInstance] vibratePatternFromFile:[NSString stringWithUTF8String:path]];
 }
