@@ -11,8 +11,9 @@
 + (instancetype)sharedInstance;
 - (void)initialize;
 - (void)dispose;
-- (void)vibrateOneShot:(NSTimeInterval)duration intensity:(float)intensity;
-- (void)vibratePattern:(NSArray<NSNumber *> *)durations intensities:(NSArray<NSNumber *> *)intensities;
+- (void)vibrateOneShot:(NSTimeInterval)duration intensity:(float)intensity sharpness:(float)sharpness;
+- (void)vibratePattern:(NSArray<NSNumber *> *)durations intensities:(NSArray<NSNumber *> *)intensities sharpnesses:(NSArray<NSNumber *> *)sharpnesses;
+- (void)vibratePatternFromFile:(NSString *)filePath;
 
 @end
 
