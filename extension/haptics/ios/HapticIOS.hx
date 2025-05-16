@@ -56,6 +56,15 @@ class HapticIOS
 		hapticVibratePattern(cpp.Pointer.ofArray(timings).constRaw, cpp.Pointer.ofArray(amplitudes).constRaw, cpp.Pointer.ofArray(sharpnesses).constRaw,
 			timings.length);
 	}
+	/**
+	 * Triggers a pattern vibration using a pattern file (.ahap).
+	 *
+	 * @param path The file path to the haptic pattern file.
+	 */
+	public static function vibratePatternFromFile(path:String):Void
+	{
+		hapticVibratePatternFromFile(path);
+	}
 
 	/**
 	 * Native function to initialize the haptic engine.
@@ -90,5 +99,13 @@ class HapticIOS
 	@:native('hapticVibratePattern')
 	extern public static function hapticVibratePattern(durations:cpp.RawConstPointer<Float>, intensities:cpp.RawConstPointer<Single>,
 		sharpnesses:cpp.RawConstPointer<Single>, count:Int):Void;
+
+	/**
+	 * Native function to triggers a pattern vibration using a pattern file (.ahap).
+	 *
+	 * @param path The file path to the haptic pattern file.
+	 */
+	@:native('hapticVibratePatternFromFile')
+	extern public static function hapticVibratePatternFromFile(path:cpp.ConstCharStar):Void;
 }
 #end

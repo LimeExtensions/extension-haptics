@@ -2,6 +2,7 @@
 
 #import <UIKit/UIKit.h>
 #import <CoreHaptics/CoreHaptics.h>
+#import <AVFoundation/AVFoundation.h>
 
 @interface HapticManager : NSObject
 
@@ -41,7 +42,7 @@
 
 		NSError *error = nil;
 
-		self.hapticEngine = [[CHHapticEngine alloc] initAndReturnError:&error];
+        self.hapticEngine = [[CHHapticEngine alloc] initWithAudioSession:[AVAudioSession sharedInstance] error:&error];
 
 		if (error)
 		{
@@ -52,7 +53,8 @@
 			return;
 		}
 
-		[self.hapticEngine startWithCompletionHandler:^(NSError * _Nullable error) {
+		[self.hapticEngine startWithCompletionHandler:^(NSError * _Nullable error)
+		{
 			if (error)
 				NSLog(@"Failed to start haptic engine: %@", error.localizedDescription);
 		}];
@@ -176,6 +178,43 @@
 	}
 }
 
+- (void)vibratePatternFromFile:(NSString *)filePath
+{
+	if (@available(iOS 13.0, *))
+	{
+		if (!self.hapticEngine)
+		{
+			NSLog(@"Haptic engine is not initialized.");
+			return;
+		}
+
+		NSError *error = nil;
+
+		CHHapticPattern *pattern = [[CHHapticPattern alloc] initWithContentsOfURL:[NSURL fileURLWithPath:filePath] error:&error];
+
+		if (error)
+		{
+			NSLog(@"Failed to load haptic pattern from file: %@", error.localizedDescription);
+			return;
+		}
+
+		id<CHHapticPatternPlayer> player = [self.hapticEngine createPlayerWithPattern:pattern error:&error];
+
+		if (error)
+		{
+			NSLog(@"Failed to create haptic player from pattern: %@", error.localizedDescription);
+			return;
+		}
+
+		[player startAtTime:0 error:&error];
+
+		if (error)
+		{
+			NSLog(@"Failed to start haptic player: %@", error.localizedDescription);
+		}
+	}
+}
+
 @end
 
 void hapticInitialize(void)
@@ -207,4 +246,9 @@ void hapticVibratePattern(const double *durations, const float *intensities, con
 	}
 
 	[[HapticManager sharedInstance] vibratePattern:durationArray intensities:intensityArray sharpnesses:sharpnessArray];
+}
+
+void hapticVibratePatternFromFile(const char *path)
+{
+	[[HapticManager sharedInstance] playPatternFromFile:[NSString stringWithUTF8String:path]];
 }

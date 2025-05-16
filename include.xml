@@ -6,5 +6,7 @@
 
 	<dependency name="extension-haptics" path="project/haptic-android" if="android" />
 
+	<dependency name="UIKit.framework" if="ios" />
 	<dependency name="CoreHaptics.framework" if="ios" />
+	<dependency name="AVFoundation.framework" if="ios" />
 </extension>

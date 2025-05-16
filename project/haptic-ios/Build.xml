@@ -17,7 +17,9 @@
 	</files>
 
 	<target id="haxe">
+		<vflag name="-framework" value="UIKit" />
 		<vflag name="-framework" value="CoreHaptics" />
+		<vflag name="-framework" value="AVFoundation" />
 	
 		<files id="haptic" />
 	</target>
