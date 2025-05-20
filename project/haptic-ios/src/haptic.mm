@@ -101,13 +101,13 @@
 			return;
 		}
 
-		__weak typeof(self) weakSelf = self;
+		__weak HapticManager *weakSelf = self;
 
 		self.hapticEngine.stoppedHandler = ^(CHHapticEngineStoppedReason reason)
 		{
 			NSLog(@"Haptic engine stopped: %ld", (long)reason);
 
-			if (reason != CHHapticEngineStoppedReasonFinished)
+			if (reason != CHHapticEngineStoppedReasonNotifyWhenFinished)
 			{
 				dispatch_async(dispatch_get_main_queue(), ^{
 					[weakSelf.hapticEngine startWithCompletionHandler:^(NSError * _Nullable error)
@@ -121,7 +121,7 @@
 
 		self.hapticEngine.resetHandler = ^{
 			NSLog(@"Haptic engine reset, restarting...");
-	
+
 			dispatch_async(dispatch_get_main_queue(), ^{
 				[weakSelf.hapticEngine startWithCompletionHandler:^(NSError * _Nullable error)
 				{
