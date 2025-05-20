@@ -24,11 +24,60 @@
 	static HapticManager *sharedInstance = nil;
 
 	static dispatch_once_t onceToken;
+
 	dispatch_once(&onceToken, ^{
 		sharedInstance = [[HapticManager alloc] init];
 	});
 
 	return sharedInstance;
+}
+
+- (instancetype)init
+{
+	self = [super init];
+
+	if (self)
+	{
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
+	}
+
+	return self;
+}
+
+- (void)dealloc
+{
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)applicationDidBecomeActive:(NSNotification *)notification
+{
+	if (@available(iOS 13.0, *))
+	{
+		if (self.hapticEngine)
+		{
+			[self.hapticEngine startWithCompletionHandler:^(NSError * _Nullable error)
+			{
+				if (error)
+					NSLog(@"Failed to restart haptic engine on foreground: %@", error.localizedDescription);
+			}];
+		}
+	}
+}
+
+- (void)applicationWillResignActive:(NSNotification *)notification
+{
+	if (@available(iOS 13.0, *)
+	{
+		if (self.hapticEngine)
+		{
+			[self.hapticEngine stopWithCompletionHandler:^(NSError * _Nullable error)
+			{
+				if (error)
+					NSLog(@"Failed to stop haptic engine on background: %@", error.localizedDescription);
+			}];
+		}
+	}
 }
 
 - (void)initialize
@@ -43,16 +92,44 @@
 
 		NSError *error = nil;
 
-        self.hapticEngine = [[CHHapticEngine alloc] initWithAudioSession:[AVAudioSession sharedInstance] error:&error];
+		self.hapticEngine = [[CHHapticEngine alloc] initWithAudioSession:[AVAudioSession sharedInstance] error:&error];
 
 		if (error)
 		{
 			NSLog(@"Failed to create haptic engine: %@", error.localizedDescription);
-
 			self.hapticEngine = nil;
-
 			return;
 		}
+
+		__weak typeof(self) weakSelf = self;
+
+		self.hapticEngine.stoppedHandler = ^(CHHapticEngineStoppedReason reason)
+		{
+			NSLog(@"Haptic engine stopped: %ld", (long)reason);
+
+			if (reason != CHHapticEngineStoppedReasonFinished)
+			{
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[weakSelf.hapticEngine startWithCompletionHandler:^(NSError * _Nullable error)
+					{
+						if (error)
+							NSLog(@"Failed to restart haptic engine after stop: %@", error.localizedDescription);
+					}];
+				});
+			}
+		};
+
+		self.hapticEngine.resetHandler = ^{
+			NSLog(@"Haptic engine reset, restarting...");
+	
+			dispatch_async(dispatch_get_main_queue(), ^{
+				[weakSelf.hapticEngine startWithCompletionHandler:^(NSError * _Nullable error)
+				{
+					if (error)
+						NSLog(@"Failed to restart haptic engine after reset: %@", error.localizedDescription);
+				}];
+			});
+		};
 
 		[self.hapticEngine startWithCompletionHandler:^(NSError * _Nullable error)
 		{
