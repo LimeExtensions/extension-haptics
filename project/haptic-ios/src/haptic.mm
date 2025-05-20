@@ -67,7 +67,7 @@
 
 - (void)applicationWillResignActive:(NSNotification *)notification
 {
-	if (@available(iOS 13.0, *)
+	if (@available(iOS 13.0, *))
 	{
 		if (self.hapticEngine)
 		{
