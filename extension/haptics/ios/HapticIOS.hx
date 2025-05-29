@@ -67,7 +67,7 @@ class HapticIOS
 	public static function vibratePatternFromData(data:Bytes):Void
 	{
 		if (data != null)
-			hapticVibratePatternFromData(cast cpp.Pointer.ofArray(data.getData()).constRaw, data.length);
+			hapticVibratePatternFromData(cast cpp.Pointer.arrayElem(data.getData(), 0).constRaw, data.length);
 	}
 
 	/**
