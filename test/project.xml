@@ -7,6 +7,7 @@
 
 	<architecture exclude="armv7" if="android" />
 
+	<assets path="assets" />
 	<source path="source" />
 
 	<haxelib name="lime" />

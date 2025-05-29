@@ -2,6 +2,7 @@
 
 #import <UIKit/UIKit.h>
 #import <CoreHaptics/CoreHaptics.h>
+#import <AVFoundation/AVFoundation.h>
 
 @interface HapticManager : NSObject
 
@@ -10,8 +11,9 @@
 + (instancetype)sharedInstance;
 - (void)initialize;
 - (void)dispose;
-- (void)vibrateOneShot:(NSTimeInterval)duration intensity:(float)intensity;
-- (void)vibratePattern:(NSArray<NSNumber *> *)durations intensities:(NSArray<NSNumber *> *)intensities;
+- (void)vibrateOneShot:(NSTimeInterval)duration intensity:(float)intensity sharpness:(float)sharpness;
+- (void)vibratePattern:(NSArray<NSNumber *> *)durations intensities:(NSArray<NSNumber *> *)intensities sharpnesses:(NSArray<NSNumber *> *)sharpnesses;
+- (void)vibratePatternFromData:(NSData *)fileData;
 
 @end
 
@@ -22,11 +24,78 @@
 	static HapticManager *sharedInstance = nil;
 
 	static dispatch_once_t onceToken;
+
 	dispatch_once(&onceToken, ^{
 		sharedInstance = [[HapticManager alloc] init];
 	});
 
 	return sharedInstance;
+}
+
+- (instancetype)init
+{
+	self = [super init];
+
+	if (self)
+	{
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
+	}
+
+	return self;
+}
+
+- (void)dealloc
+{
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)applicationDidBecomeActive:(NSNotification *)notification
+{
+	if (@available(iOS 13.0, *))
+	{
+		[self startEngineSafely];
+	}
+}
+
+- (void)applicationWillResignActive:(NSNotification *)notification
+{
+	if (@available(iOS 13.0, *))
+	{
+		[self stopEngineSafely:@"App moved to background"];
+	}
+}
+
+- (void)startEngineSafely
+{
+	if (@available(iOS 13.0, *))
+	{
+		if (self.hapticEngine)
+		{
+			[self.hapticEngine startWithCompletionHandler:^(NSError * _Nullable error)
+			{
+				if (error)
+					NSLog(@"Failed to start haptic engine: %@", error.localizedDescription);
+			}];
+		}
+	}
+}
+
+- (void)stopEngineSafely:(NSString *)reason
+{
+	if (@available(iOS 13.0, *))
+	{
+		if (self.hapticEngine)
+		{
+			[self.hapticEngine stopWithCompletionHandler:^(NSError * _Nullable error)
+			{
+				if (error)
+					NSLog(@"Failed to stop haptic engine (%@): %@", reason, error.localizedDescription);
+				else
+					NSLog(@"Haptic engine stopped successfully (%@)", reason);
+			}];
+		}
+	}
 }
 
 - (void)initialize
@@ -41,7 +110,7 @@
 
 		NSError *error = nil;
 
-		self.hapticEngine = [[CHHapticEngine alloc] initAndReturnError:&error];
+		self.hapticEngine = [[CHHapticEngine alloc] initWithAudioSession:[AVAudioSession sharedInstance] error:&error];
 
 		if (error)
 		{
@@ -52,10 +121,37 @@
 			return;
 		}
 
-		[self.hapticEngine startWithCompletionHandler:^(NSError * _Nullable error) {
-			if (error)
-				NSLog(@"Failed to start haptic engine: %@", error.localizedDescription);
-		}];
+		__weak HapticManager *weakSelf = self;
+
+		self.hapticEngine.stoppedHandler = ^(CHHapticEngineStoppedReason reason)
+		{
+			NSLog(@"Haptic engine stopped: %ld", (long)reason);
+
+			dispatch_async(dispatch_get_main_queue(), ^{
+				switch (reason)
+				{
+					case CHHapticEngineStoppedReasonAudioSessionInterrupt:
+					case CHHapticEngineStoppedReasonApplicationSuspended:
+						break;
+					case CHHapticEngineStoppedReasonIdleTimeout:
+					case CHHapticEngineStoppedReasonSystemError:
+						[weakSelf startEngineSafely];
+						break;
+					default:
+						break;
+				}
+			});
+		};
+
+		self.hapticEngine.resetHandler = ^{
+			NSLog(@"Haptic engine reset, restarting...");
+
+			dispatch_async(dispatch_get_main_queue(), ^{
+				[weakSelf startEngineSafely];
+			});
+		};
+
+		[self startEngineSafely];
 	}
 }
 
@@ -63,16 +159,9 @@
 {
 	if (@available(iOS 13.0, *))
 	{
-		if (self.hapticEngine)
-		{
-			[self.hapticEngine stopWithCompletionHandler:^(NSError * _Nullable error)
-			{
-				if (error)
-					NSLog(@"Failed to stop haptic engine: %@", error.localizedDescription);
-			}];
+		[self stopEngineSafely:@"dispose() called"];
 
-			self.hapticEngine = nil;
-		}
+		self.hapticEngine = nil;
 	}
 }
 
@@ -140,7 +229,7 @@
 
 			if (duration <= 0)
    			{
-				NSLog(@"Skipping event with non-positive duration at index %ld", (long)i);
+				NSLog(@"Skipping event with non-positive duration at index %ld", (long) i);
 				continue;
 			}
 
@@ -176,6 +265,23 @@
 	}
 }
 
+- (void)vibratePatternFromData:(NSData *)fileData
+{
+	if (@available(iOS 13.0 , *))
+	{
+		if (!self.hapticEngine)
+		{
+			NSLog(@"Haptic engine is not initialized.");
+			return;
+		}
+
+		NSError *error = nil;
+
+		if (![self.hapticEngine playPatternFromData:fileData error:&error])
+			NSLog(@"Failed to play haptic pattern: %@", error.localizedDescription);
+	}
+}
+
 @end
 
 void hapticInitialize(void)
@@ -207,4 +313,9 @@ void hapticVibratePattern(const double *durations, const float *intensities, con
 	}
 
 	[[HapticManager sharedInstance] vibratePattern:durationArray intensities:intensityArray sharpnesses:sharpnessArray];
+}
+
+void hapticVibratePatternFromData(const void *bytes, size_t len)
+{
+	[[HapticManager sharedInstance] vibratePatternFromData:[NSData dataWithBytes:bytes length:len]];
 }
