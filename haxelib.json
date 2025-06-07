@@ -12,11 +12,11 @@
 		"objcpp",
 		"haptic-feedback"
 	],
-	"releasenote": "Add support for .ahap and fixed some issues on iOS.",
+	"releasenote": "Clean up the need for JNICache.",
 	"contributors": [
 		"MAJigsaw77"
 	],
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"dependencies": {
 		"lime": ""
 	}
