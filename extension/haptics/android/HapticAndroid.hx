@@ -1,7 +1,7 @@
 package extension.haptics.android;
 
 #if android
-import extension.haptics.android.util.JNICache;
+import lime.system.JNI;
 
 /**
  * This class provides haptic feedback functionality for `Android` devices using native `Java` methods.
@@ -52,11 +52,17 @@ class HapticAndroid
 	public static final PRIMITIVE_TICK:Int = 7;
 
 	/**
+	 * Cache for storing created static JNI method references.
+	 */
+	@:noCompletion
+	private static var staticMethodsCache:Map<String, Dynamic> = [];
+
+	/**
 	 * Initializes the haptic system by calling the corresponding Java method.
 	 */
 	public static function initialize():Void
 	{
-		final initializeJNI:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Haptic', 'initialize', '()V');
+		final initializeJNI:Null<Dynamic> = createJNIStaticMethod('org/haxe/extension/Haptic', 'initialize', '()V');
 
 		if (initializeJNI != null)
 			initializeJNI();
@@ -67,7 +73,7 @@ class HapticAndroid
 	 */
 	public static function dispose():Void
 	{
-		final disposeJNI:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Haptic', 'dispose', '()V');
+		final disposeJNI:Null<Dynamic> = createJNIStaticMethod('org/haxe/extension/Haptic', 'dispose', '()V');
 
 		if (disposeJNI != null)
 			disposeJNI();
@@ -81,7 +87,7 @@ class HapticAndroid
 	 */
 	public static function vibrateOneShot(duration:Int, amplitude:Int):Void
 	{
-		final vibrateJNI:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Haptic', 'vibrateOneShot', '(II)V');
+		final vibrateJNI:Null<Dynamic> = createJNIStaticMethod('org/haxe/extension/Haptic', 'vibrateOneShot', '(II)V');
 
 		if (vibrateJNI != null)
 			vibrateJNI(duration, amplitude);
@@ -97,7 +103,7 @@ class HapticAndroid
 	 */
 	public static function vibrateDirectionalOneShot(duration:Int, amplitude:Int, directionX:Float, directionY:Float):Void
 	{
-		final vibrateDirectionalJNI:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Haptic', 'vibrateDirectionalOneShot', '(IIDD)V');
+		final vibrateDirectionalJNI:Null<Dynamic> = createJNIStaticMethod('org/haxe/extension/Haptic', 'vibrateDirectionalOneShot', '(IIDD)V');
 
 		if (vibrateDirectionalJNI != null)
 			vibrateDirectionalJNI(duration, amplitude, directionX, directionY);
@@ -111,7 +117,7 @@ class HapticAndroid
 	 */
 	public static function vibratePattern(timings:Array<Int>, amplitudes:Array<Int>):Void
 	{
-		final vibratePatternJNI:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Haptic', 'vibratePattern', '([I[I)V');
+		final vibratePatternJNI:Null<Dynamic> = createJNIStaticMethod('org/haxe/extension/Haptic', 'vibratePattern', '([I[I)V');
 
 		if (vibratePatternJNI != null)
 			vibratePatternJNI(timings, amplitudes);
@@ -127,7 +133,7 @@ class HapticAndroid
 	 */
 	public static function vibrateDirectionalPattern(timings:Array<Int>, amplitudes:Array<Int>, directionX:Float, directionY:Float):Void
 	{
-		final vibrateDirectionalPatternJNI:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Haptic', 'vibrateDirectionalPattern', '([I[IDD)V');
+		final vibrateDirectionalPatternJNI:Null<Dynamic> = createJNIStaticMethod('org/haxe/extension/Haptic', 'vibrateDirectionalPattern', '([I[IDD)V');
 
 		if (vibrateDirectionalPatternJNI != null)
 			vibrateDirectionalPatternJNI(timings, amplitudes, directionX, directionY);
@@ -142,7 +148,7 @@ class HapticAndroid
 	 */
 	public static function isPrimitiveSupported(primitiveId:Int):Bool
 	{
-		final isPrimitiveSupportedJNI:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Haptic', 'isPrimitiveSupported', '(I)Z');
+		final isPrimitiveSupportedJNI:Null<Dynamic> = createJNIStaticMethod('org/haxe/extension/Haptic', 'isPrimitiveSupported', '(I)Z');
 
 		if (isPrimitiveSupportedJNI != null)
 			return isPrimitiveSupportedJNI(primitiveId);
@@ -159,10 +165,34 @@ class HapticAndroid
 	 */
 	public static function vibratePredefined(primitiveIds:Array<Int>, scales:Array<Float>, delays:Array<Int>):Void
 	{
-		final vibratePredefinedJNI:Null<Dynamic> = JNICache.createStaticMethod('org/haxe/extension/Haptic', 'vibratePredefined', '([I[D[I)V');
+		final vibratePredefinedJNI:Null<Dynamic> = createJNIStaticMethod('org/haxe/extension/Haptic', 'vibratePredefined', '([I[D[I)V');
 
 		if (vibratePredefinedJNI != null)
 			vibratePredefinedJNI(primitiveIds, scales, delays);
+	}
+
+	/**
+	 * Retrieves or creates a cached static method reference.
+	 * @param className The name of the Java class containing the method.
+	 * @param methodName The name of the method to call.
+	 * @param signature The JNI method signature string (e.g., "()V", "(Ljava/lang/String;)V").
+	 * @param cache Whether to cache the result (default true).
+	 * @return A dynamic reference to the static method, or null if it couldn't be created.
+	 */
+	@:noCompletion
+	private static function createJNIStaticMethod(className:String, methodName:String, signature:String, cache:Bool = true):Null<Dynamic>
+	{
+		@:privateAccess
+		className = JNI.transformClassName(className);
+
+		final key:String = '$className::$methodName::$signature';
+
+		if (cache && !staticMethodsCache.exists(key))
+			staticMethodsCache.set(key, JNI.createStaticMethod(className, methodName, signature));
+		else if (!cache)
+			return JNI.createStaticMethod(className, methodName, signature);
+
+		return staticMethodsCache.get(key);
 	}
 }
 #end
