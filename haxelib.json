@@ -12,11 +12,11 @@
 		"objcpp",
 		"haptic-feedback"
 	],
-	"releasenote": "Clean up the need for JNICache.",
+	"releasenote": "Remove vibrateDirectional functions.",
 	"contributors": [
 		"MAJigsaw77"
 	],
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"dependencies": {
 		"lime": ""
 	}
