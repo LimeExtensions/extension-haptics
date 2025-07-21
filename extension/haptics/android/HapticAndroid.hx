@@ -94,22 +94,6 @@ class HapticAndroid
 	}
 
 	/**
-	 * Triggers a directional one-shot vibration with the specified duration, intensity (amplitude) and direction weights (directionX, directionY).
-	 * 
-	 * @param duration The vibration duration in milliseconds.
-	 * @param amplitude The intensity of the vibration (0-255).
-	 * @param directionX The horizontal direction weight (-1.0 to 1.0).
-	 * @param directionY The vertical direction weight (-1.0 to 1.0).
-	 */
-	public static function vibrateDirectionalOneShot(duration:Int, amplitude:Int, directionX:Float, directionY:Float):Void
-	{
-		final vibrateDirectionalJNI:Null<Dynamic> = createJNIStaticMethod('org/haxe/extension/Haptic', 'vibrateDirectionalOneShot', '(IIDD)V');
-
-		if (vibrateDirectionalJNI != null)
-			vibrateDirectionalJNI(duration, amplitude, directionX, directionY);
-	}
-
-	/**
 	 * Triggers a pattern vibration defined by arrays of timings and amplitudes.
 	 * 
 	 * @param timings An array of vibration durations in milliseconds.
@@ -121,22 +105,6 @@ class HapticAndroid
 
 		if (vibratePatternJNI != null)
 			vibratePatternJNI(timings, amplitudes);
-	}
-
-	/**
-	 * Triggers a directional vibration pattern using specified timings, amplitudes and directional weights.
-	 * 
-	 * @param timings An array of vibration durations in milliseconds.
-	 * @param amplitudes An array of vibration intensities (0-255).
-	 * @param directionX The X component of the direction.
-	 * @param directionY The Y component of the direction.
-	 */
-	public static function vibrateDirectionalPattern(timings:Array<Int>, amplitudes:Array<Int>, directionX:Float, directionY:Float):Void
-	{
-		final vibrateDirectionalPatternJNI:Null<Dynamic> = createJNIStaticMethod('org/haxe/extension/Haptic', 'vibrateDirectionalPattern', '([I[IDD)V');
-
-		if (vibrateDirectionalPatternJNI != null)
-			vibrateDirectionalPatternJNI(timings, amplitudes, directionX, directionY);
 	}
 
 	/**

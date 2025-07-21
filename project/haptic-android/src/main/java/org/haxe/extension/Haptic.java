@@ -62,44 +62,6 @@ public class Haptic
 		}
 	}
 
-	public static void vibrateDirectionalOneShot(final int duration, final int amplitude, final double directionX, final double directionY)
-	{
-		if (Build.VERSION.SDK_INT >= 31)
-		{
-			if (vibratorManager == null)
-				return;
-
-			int[] vibrators = vibratorManager.getVibratorIds();
-
-			if (vibrators.length > 1)
-			{
-				double totalMagnitude = Math.sqrt(directionX * directionX + directionY * directionY);
-				double leftWeight = Math.max(0, -directionX) / totalMagnitude;
-				double rightWeight = Math.max(0, directionX) / totalMagnitude;
-				double topWeight = Math.max(0, directionY) / totalMagnitude;
-				double bottomWeight = Math.max(0, -directionY) / totalMagnitude;
-
-				CombinedVibration.ParallelCombination composition = CombinedVibration.startParallel();
-
-				int midpoint = vibrators.length / 2;
-
-				for (int i = 0; i < vibrators.length; i++)
-				{
-					double weight = (i < midpoint) ? leftWeight / midpoint + topWeight / (vibrators.length / 2) : rightWeight / (vibrators.length - midpoint) + bottomWeight / (vibrators.length / 2);
-
-					if (weight > 0)
-						composition.addVibrator(vibratorManager.getVibrator(i).getId(), VibrationEffect.createOneShot(duration, (int) (amplitude * weight)));
-				}
-
-				vibratorManager.vibrate(composition.combine());
-			}
-			else
-				vibratorManager.vibrate(CombinedVibration.createParallel(VibrationEffect.createOneShot(duration, amplitude)));
-		}
-		else
-			vibrateOneShot(duration, amplitude);
-	}
-
 	public static void vibratePattern(final int[] timings, final int[] amplitudes)
 	{
 		if (Build.VERSION.SDK_INT >= 31)
@@ -126,56 +88,6 @@ public class Haptic
 
 			vibrator.vibrate(VibrationEffect.createWaveform(longTimings, amplitudes, -1));
 		}
-	}
-
-	public static void vibrateDirectionalPattern(final int[] timings, final int[] amplitudes, final double directionX, final double directionY)
-	{
-		if (Build.VERSION.SDK_INT >= 31)
-		{
-			if (vibratorManager == null)
-				return;
-
-			long[] longTimings = new long[timings.length];
-
-			for (int i = 0; i < timings.length; i++)
-				longTimings[i] = (long) timings[i];
-
-			int[] vibrators = vibratorManager.getVibratorIds();
-
-			if (vibrators.length > 1)
-			{
-				double totalMagnitude = Math.sqrt(directionX * directionX + directionY * directionY);
-				double leftWeight = Math.max(0, -directionX) / totalMagnitude;
-				double rightWeight = Math.max(0, directionX) / totalMagnitude;
-				double topWeight = Math.max(0, directionY) / totalMagnitude;
-				double bottomWeight = Math.max(0, -directionY) / totalMagnitude;
-
-				CombinedVibration.ParallelCombination composition = CombinedVibration.startParallel();
-
-				int midpoint = vibrators.length / 2;
-
-				for (int i = 0; i < vibrators.length; i++)
-				{
-					double weight = (i < midpoint) ? leftWeight / midpoint + topWeight / (vibrators.length / 2) : rightWeight / (vibrators.length - midpoint) + bottomWeight / (vibrators.length / 2);
-
-					if (weight > 0)
-					{
-						int[] scaledAmplitudes = new int[amplitudes.length];
-
-						for (int j = 0; j < amplitudes.length; j++)
-							scaledAmplitudes[j] = (int) (amplitudes[j] * weight);
-
-						composition.addVibrator(vibratorManager.getVibrator(i).getId(), VibrationEffect.createWaveform(longTimings, scaledAmplitudes, -1));
-					}
-				}
-
-				vibratorManager.vibrate(composition.combine());
-			}
-			else
-				vibratorManager.vibrate(CombinedVibration.createParallel(VibrationEffect.createWaveform(longTimings, amplitudes, -1)));
-		}
-		else
-			vibratePattern(timings, amplitudes);
 	}
 
 	public static boolean isPrimitiveSupported(int primitiveId)

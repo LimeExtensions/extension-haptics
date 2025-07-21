@@ -1,6 +1,6 @@
 ## extension-haptics
 
-![](https://img.shields.io/github/repo-size/MAJigsaw77/extension-haptics) ![](https://badgen.net/github/open-issues/MAJigsaw77/extension-haptics) ![](https://badgen.net/badge/license/MIT/green)
+![](https://img.shields.io/github/repo-size/LimeExtensions/extension-haptics) ![](https://badgen.net/github/open-issues/LimeExtensions/extension-haptics) ![](https://badgen.net/badge/license/MIT/green)
 
 A Haxe/[Lime](https://lime.openfl.org) extension that implements Haptic Feedback effects on Android and iOS Devices.
 
@@ -12,7 +12,7 @@ haxelib install extension-haptics
 ```
 Or through `Git`, if you want the latest updates
 ```bash
-haxelib git extension-haptics https://github.com/MAJigsaw77/extension-haptics.git
+haxelib git extension-haptics https://github.com/LimeExtensions/extension-haptics.git
 ```
 
 ## Usage
