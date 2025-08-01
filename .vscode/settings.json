@@ -1,3 +1,6 @@
 {
-    "lime.projectFile": "test/project.xml"
+    "lime.projectFile": "test/project.xml",
+    "files.associations": {
+        "*.ahap": "json"
+    },
 }
