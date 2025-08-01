@@ -1,16 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project>
-	<meta title="Extension-Haptics Test" package="org.openfl.lime.samples.helloworld" version="1.0.0"
+<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://lime.openfl.org/project/1.0.4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://lime.openfl.org/project/1.0.4 http://lime.openfl.org/xsd/project-1.0.4.xsd">
+
+	<meta title="Extension-Haptics Test" package="org.extension.haptics.haptics-test" version="1.0.0"
 		company="OpenFL" />
 
 	<app main="Main" path="export" file="App" />
 
-	<architecture exclude="armv7" if="android" />
+	<architecture name="armv6" exclude="armv7" if="android" />
+	<window resizable="true" />
 
 	<assets path="assets" />
 	<source path="source" />
 
 	<haxelib name="lime" />
+	<haxelib name="openfl" />
 	<haxelib name="extension-haptics" />
 
 	<haxeflag name="-dce" value="full" />
