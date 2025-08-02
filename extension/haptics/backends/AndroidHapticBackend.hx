@@ -1,7 +1,8 @@
-package extension.haptics.android;
+package extension.haptics.backend;
 
 #if android
 import lime.system.JNI;
+using Lambda;
 
 /**
  * This class provides haptic feedback functionality for `Android` devices using native `Java` methods.
@@ -9,7 +10,7 @@ import lime.system.JNI;
  * @see https://developer.android.com/reference/android/os/VibratorManager
  * @see https://developer.android.com/reference/android/os/Vibrator
  */
-class HapticAndroid
+class AndroidHapticBackend implements IHapticBackend
 {
 	/**
 	 * Represents a short, sharp click vibration.
@@ -57,6 +58,7 @@ class HapticAndroid
 	@:noCompletion
 	private static var staticMethodsCache:Map<String, Dynamic> = [];
 
+	public function new():Void {}
 	/**
 	 * Initializes the haptic system by calling the corresponding Java method.
 	 */
@@ -84,27 +86,40 @@ class HapticAndroid
 	 * 
 	 * @param duration The vibration duration in milliseconds.
 	 * @param amplitude The intensity of the vibration (0-255).
+	 * @param sharpness The sharpness of the vibration (0.0 to 1.0, iOS only).
 	 */
-	public static function vibrateOneShot(duration:Int, amplitude:Int):Void
+	public static function vibrateOneShot(duration:Float, amplitude:Float, sharpness:Float):Void
 	{
 		final vibrateJNI:Null<Dynamic> = createJNIStaticMethod('org/haxe/extension/Haptic', 'vibrateOneShot', '(II)V');
 
 		if (vibrateJNI != null)
-			vibrateJNI(duration, amplitude);
+			vibrateJNI(Math.floor(duration * 1000), Math.floor(Math.max(1, Math.min(255, amplitude * 255))));
 	}
 
 	/**
 	 * Triggers a pattern vibration defined by arrays of timings and amplitudes.
 	 * 
-	 * @param timings An array of vibration durations in milliseconds.
+	 * @param durations An array of vibration durations in milliseconds.
 	 * @param amplitudes An array of vibration intensities (0-255).
+	 * @param sharpnesses unused on Android
 	 */
-	public static function vibratePattern(timings:Array<Int>, amplitudes:Array<Int>):Void
+	public static function vibratePattern(durations:Array<Float>, amplitudes:Array<Float>, sharpnesses:Array<Float>):Void
 	{
+		function durationToMilliseconds(duration:Float):Int return Std.int(Math.floor(duration * 1000));
+		// scales amplitude between 0 and 255 for android amplitude input
+		function rescaleAmplitudes(amplitude:Float):Int return Std.int(Math.floor(Math.max(1, Math.min(255, amplitude * 255))));
+
+		// on Android, the first element is the delay. We want to start immediately, so 0
+		durations.unshift(0);
+		amplitudes.unshift(0);
+
+		durations = durations.map(durationToMilliseconds);
+		amplitudes = amplitudes.map(rescaleAmplitudes);
+
 		final vibratePatternJNI:Null<Dynamic> = createJNIStaticMethod('org/haxe/extension/Haptic', 'vibratePattern', '([I[I)V');
 
 		if (vibratePatternJNI != null)
-			vibratePatternJNI(timings, amplitudes);
+			vibratePatternJNI(durations, amplitudes);
 	}
 
 	/**
