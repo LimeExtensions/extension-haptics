@@ -9,6 +9,21 @@ import extension.haptics.backends.IOSHapticBackend;
 
 /**
  * This class provides a cross-platform interface for haptic feedback functionality.
+ * Can be safely accessed cross platform, as any unsupported platforms (desktop/html5) simply just call empty backend functions
+ * So usage is generally
+ * Haptic.initialize(); 
+ * Haptic.vibrateOneShot(0.5, 0.2, 0.8); // Calls a one-shot vibration that lasts 0.5 seconds, at 0.2 intensity, and at 0.8 sharpness
+ * 
+ * #if ios
+ * // iOS specific functions are in HapticIOS.hx 
+ * HapticIOS.vibratePatternFromData(Assets.getBytes("data/heartbeats.ahap")); 
+ * #end
+ * 
+ * #if android
+ * // Android specific functions are in HapticAndroid.hx
+ * if(HapticAndroid.isPrimitiveSupported(HapticAndroid.PRIMITIVE_CLICK))
+ * 		trace("Has Android Click Primitive!");
+ * #end
  */
 class Haptic
 {

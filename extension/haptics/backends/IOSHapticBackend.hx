@@ -65,16 +65,6 @@ class IOSHapticBackend implements IHapticBackend
 			timings.length);
 	}
 
-	/**
-	 * Triggers a haptic vibration pattern using the provided pattern data.
-	 * 
-	 * @param data The AHAP pattern data as a `Bytes` object.
-	 */
-	public function vibratePatternFromData(data:Bytes):Void
-	{
-		if (data != null)
-			hapticVibratePatternFromData(cast cpp.Pointer.arrayElem(data.getData(), 0).constRaw, data.length);
-	}
 
 	/**
 	 * Native function to initialize the haptic engine.
@@ -110,13 +100,5 @@ class IOSHapticBackend implements IHapticBackend
 	extern public static function hapticVibratePattern(durations:cpp.RawConstPointer<Float>, intensities:cpp.RawConstPointer<Single>,
 		sharpnesses:cpp.RawConstPointer<Single>, count:Int):Void;
 
-	/**
-	 * Native function to triggers a pattern vibration using a pattern file (.ahap).
-	 *
-	 * @param bytes The buffer containing data for the new object.
-	 * @param length The number of bytes to copy from bytes.
-	 */
-	@:native('hapticVibratePatternFromData')
-	extern public static function hapticVibratePatternFromData(bytes:cpp.RawConstPointer<cpp.Void>, len:cpp.SizeT):Void;
 }
 #end
