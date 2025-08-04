@@ -1,46 +1,67 @@
 package extension.haptics;
 
+import extension.haptics.backends.IHapticBackend;
 #if android
-import extension.haptics.android.HapticAndroid;
+import extension.haptics.backends.AndroidHapticBackend;
 #elseif ios
-import extension.haptics.ios.HapticIOS;
+import extension.haptics.backends.IOSHapticBackend;
 #end
 
 /**
  * This class provides a cross-platform interface for haptic feedback functionality.
+ * Can be safely accessed cross platform, as any unsupported platforms (desktop/html5) simply just call empty backend functions
+ * So usage is generally
+ * Haptic.initialize(); 
+ * Haptic.vibrateOneShot(0.5, 0.2, 0.8); // Calls a one-shot vibration that lasts 0.5 seconds, at 0.2 intensity, and at 0.8 sharpness
+ * 
+ * #if ios
+ * // iOS specific functions are in HapticIOS.hx 
+ * HapticIOS.vibratePatternFromData(Assets.getBytes("data/heartbeats.ahap")); 
+ * #end
+ * 
+ * #if android
+ * // Android specific functions are in HapticAndroid.hx
+ * if(HapticAndroid.isPrimitiveSupported(HapticAndroid.PRIMITIVE_CLICK))
+ * 		trace("Has Android Click Primitive!");
+ * #end
  */
 class Haptic
 {
+
+	private static var _backend:Null<IHapticBackend>;
+	public static var backend(get, never):IHapticBackend;
+
+	static function get_backend():IHapticBackend
+	{
+		if (_backend == null) _backend = createBackend();
+		return _backend;
+	}
+
+	static function createBackend():IHapticBackend
+	{
+		#if android
+        return new AndroidHapticBackend();
+        #elseif ios
+        return new IOSHapticBackend();
+        #else
+        return new EmptyHapticBackend();
+        #end
+	}
+
 	/**
 	 * Initializes the haptic system for the current platform.
-	 * 
-	 * This method delegates to the platform-specific implementation:
-	 * - Android: Calls `HapticAndroid.initialize()`.
-	 * - iOS: Calls `HapticIOS.initialize()`.
 	 */
 	public static function initialize():Void
 	{
-		#if android
-		HapticAndroid.initialize();
-		#elseif ios
-		HapticIOS.initialize();
-		#end
+		backend.initialize();
 	}
 
 	/**
 	 * Disposes of the haptic system for the current platform.
-	 * 
-	 * This method delegates to the platform-specific implementation:
-	 * - Android: Calls `HapticAndroid.dispose()`.
-	 * - iOS: Calls `HapticIOS.dispose()`.
 	 */
 	public static function dispose():Void
 	{
-		#if android
-		HapticAndroid.dispose();
-		#elseif ios
-		HapticIOS.dispose();
-		#end
+		backend.dispose();
 	}
 
 	/**
@@ -56,11 +77,7 @@ class Haptic
 	 */
 	public static function vibrateOneShot(duration:Float, amplitude:Float, sharpness:Float):Void
 	{
-		#if android
-		HapticAndroid.vibrateOneShot(Math.floor(duration * 1000), Math.floor(Math.max(1, Math.min(255, amplitude * 255))));
-		#elseif ios
-		HapticIOS.vibrateOneShot(duration, Math.max(0, Math.min(1, amplitude)), Math.max(0, Math.min(1, sharpness)));
-		#end
+		backend.vibrateOneShot(duration, amplitude, sharpness);
 	}
 
 	/**
@@ -76,30 +93,6 @@ class Haptic
 	 */
 	public static function vibratePattern(durations:Array<Float>, amplitudes:Array<Float>, sharpnesses:Array<Float>):Void
 	{
-		#if android
-		final intTimings:Array<Int> = [0]; // The first element is the delay.
-
-		for (i in 0...durations.length)
-			intTimings.push(Math.floor(durations[i] * 1000));
-
-		final intAmplitudes:Array<Int> = [0]; // Since the first element is the delay, it won't have an amplitude.
-
-		for (i in 0...amplitudes.length)
-			intAmplitudes.push(Math.floor(Math.max(1, Math.min(255, amplitudes[i] * 255))));
-
-		HapticAndroid.vibratePattern(intTimings, intAmplitudes);
-		#elseif ios
-		final singleAmplitudes:Array<Single> = [];
-
-		for (i in 0...amplitudes.length)
-			singleAmplitudes[i] = (amplitudes[i] : Single);
-
-		final singleSharpnesses:Array<Single> = [];
-
-		for (i in 0...sharpnesses.length)
-			singleSharpnesses[i] = (sharpnesses[i] : Single);
-
-		HapticIOS.vibratePattern(durations, singleAmplitudes, singleSharpnesses);
-		#end
+		backend.vibratePattern(durations, amplitudes, sharpnesses);
 	}
 }

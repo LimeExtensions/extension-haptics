@@ -196,7 +196,7 @@
 			return;
 		}
 
-		[player startAtTime:0 error:&error];
+		[player startAtTime:CHHapticTimeImmediate error:&error];
 
 		if (error)
 			NSLog(@"Failed to start haptic player: %@", error.localizedDescription);
@@ -258,7 +258,7 @@
 			return;
 		}
 
-		[player startAtTime:0 error:&error];
+		[player startAtTime:CHHapticTimeImmediate error:&error];
 
 		if (error)
 			NSLog(@"Failed to start haptic player: %@", error.localizedDescription);
