@@ -34,7 +34,7 @@ class Main extends Sprite
 		#if android
 		extension.haptics.Haptic.vibratePattern([0.5, 0.1, 0.8, 0.2, 1.0], [1.0, 0.5, 1.0, 0.3, 0.8], [0.5, 0.5, 1.0, 0.3, 0.8]);
 		#elseif ios
-		extension.haptics.ios.HapticIOS.vibratePatternFromData(Assets.getBytes('assets/Heartbeats.ahap'));
+		extension.haptics.HapticIOS.vibratePatternFromData(Assets.getBytes('assets/Heartbeats.ahap'));
 		#end
 	}
 }

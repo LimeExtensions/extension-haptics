@@ -1,7 +1,8 @@
-package extension.haptics.ios;
+package extension.haptics.backends;
 
 #if ios
 import haxe.io.Bytes;
+using Lambda;
 
 /**
  * This class provides haptic feedback functionality for `iOS` devices using the `CoreHaptics` framework.
@@ -10,14 +11,15 @@ import haxe.io.Bytes;
  */
 @:buildXml('<include name="${haxelib:extension-haptics}/project/haptic-ios/Build.xml" />')
 @:headerInclude('haptic.hpp')
-class HapticIOS
+class IOSHapticBackend implements IHapticBackend
 {
+	public function new():Void {}
 	/**
 	 * Initializes the haptic engine.
 	 * 
 	 * Must be called before using any haptic feedback functions.
 	 */
-	public static function initialize():Void
+	public function initialize():Void
 	{
 		hapticInitialize();
 	}
@@ -27,7 +29,7 @@ class HapticIOS
 	 * 
 	 * Should be called to release resources when haptic feedback is no longer needed.
 	 */
-	public static function dispose():Void
+	public function dispose():Void
 	{
 		hapticDispose();
 	}
@@ -39,9 +41,9 @@ class HapticIOS
 	 * @param amplitude The intensity of the vibration (range: 0.0 to 1.0).
 	 * @param sharpness The sharpness of the vibration (range: 0.0 to 1.0, where 0.0 is smooth and 1.0 is sharp).
 	 */
-	public static function vibrateOneShot(duration:Float, amplitude:Single, sharpness:Single):Void
+	public function vibrateOneShot(duration:Float, amplitude:Single, sharpness:Single):Void
 	{
-		hapticVibrateOneShot(duration, amplitude, sharpness);
+		hapticVibrateOneShot(duration, Math.max(0, Math.min(1, amplitude)), Math.max(0, Math.min(1, sharpness)));
 	}
 
 	/**
@@ -53,22 +55,16 @@ class HapticIOS
 	 * 
 	 * All arrays must have the same length.
 	 */
-	public static function vibratePattern(timings:Array<Float>, amplitudes:Array<Single>, sharpnesses:Array<Single>):Void
+	public function vibratePattern(timings:Array<Float>, amplitudes:Array<Float>, sharpnesses:Array<Float>):Void
 	{
-		hapticVibratePattern(cpp.Pointer.ofArray(timings).constRaw, cpp.Pointer.ofArray(amplitudes).constRaw, cpp.Pointer.ofArray(sharpnesses).constRaw,
+		// casts Floats -> Singles, since iOS / obj-c expects that as their inputs :thinking:
+		final singleAmplitudes:Array<Single> = amplitudes.map(a -> (a : Single));
+		final singleSharpnesses:Array<Single> = sharpnesses.map(s -> (s : Single));
+
+		hapticVibratePattern(cpp.Pointer.ofArray(timings).constRaw, cpp.Pointer.ofArray(singleAmplitudes).constRaw, cpp.Pointer.ofArray(singleSharpnesses).constRaw,
 			timings.length);
 	}
 
-	/**
-	 * Triggers a haptic vibration pattern using the provided pattern data.
-	 * 
-	 * @param data The AHAP pattern data as a `Bytes` object.
-	 */
-	public static function vibratePatternFromData(data:Bytes):Void
-	{
-		if (data != null)
-			hapticVibratePatternFromData(cast cpp.Pointer.arrayElem(data.getData(), 0).constRaw, data.length);
-	}
 
 	/**
 	 * Native function to initialize the haptic engine.
@@ -104,13 +100,5 @@ class HapticIOS
 	extern public static function hapticVibratePattern(durations:cpp.RawConstPointer<Float>, intensities:cpp.RawConstPointer<Single>,
 		sharpnesses:cpp.RawConstPointer<Single>, count:Int):Void;
 
-	/**
-	 * Native function to triggers a pattern vibration using a pattern file (.ahap).
-	 *
-	 * @param bytes The buffer containing data for the new object.
-	 * @param length The number of bytes to copy from bytes.
-	 */
-	@:native('hapticVibratePatternFromData')
-	extern public static function hapticVibratePatternFromData(bytes:cpp.RawConstPointer<cpp.Void>, len:cpp.SizeT):Void;
 }
 #end
